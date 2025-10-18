@@ -29,8 +29,7 @@ message(STATUS "FOUND TEST FILES: ${TEST_FILES}")
 foreach (SOURCE_FILE ${SOURCES})
     message(STATUS " Source file: ${SOURCE_FILE}")
 endforeach()
-add_executable(${PROJECT_NAME} ${SRC_FILES}
-        src/main.cpp)
+add_executable(${PROJECT_NAME} ${SRC_FILES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIR})
 
 if(ENABLE_TESTING)
