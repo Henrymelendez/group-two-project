@@ -24,6 +24,8 @@ public:
      */
     virtual std::string analyze() = 0;
 
+    int* cloneValues(int*, int);
+
 };
 
 #endif //GROUP_TWO_PROJECT_ANALYZER_H
