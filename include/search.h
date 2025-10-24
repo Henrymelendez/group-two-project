@@ -7,6 +7,6 @@ bool binary_search_recursive(int* values, int key, int start, int end);
 
 
 // Helper Function to perform binary search on a sorted array
-int binary_search(int* values, int key, int size);
+bool binary_search(int* values, int key, int size);
 
 #endif //GROUP_TWO_PROJECT_SEARCH_H

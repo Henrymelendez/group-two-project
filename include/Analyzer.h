@@ -3,7 +3,7 @@
 #include <string>
 
 class Analyzer {
-private:
+protected:
     int* data;
     unsigned int size;
 public:

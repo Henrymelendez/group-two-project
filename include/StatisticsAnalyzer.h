@@ -2,6 +2,7 @@
 #define GROUP_TWO_PROJECT_STATISTICSANALYZER_H
 
 #include "Analyzer.h"
+#include "sorting.h"
 #include <string>
 
 class StatisticsAnalyzer : public Analyzer {
