@@ -28,7 +28,7 @@ The project showcases object-oriented design with polymorphism, modern C++ featu
 
 ## Features
 
-### ✨ Core Capabilities
+### Core Capabilities
 
 - **Automatic Data Generation**: Creates binary data files if they don't exist
 - **Binary File I/O**: Efficient binary file reading and writing
@@ -39,7 +39,7 @@ The project showcases object-oriented design with polymorphism, modern C++ featu
 - **Duplicate Detection**: Finds and reports all duplicate values with counts
 - **Gap Analysis**: Identifies missing values within the data range
 
-### 🎯 Key Highlights
+### Key Highlights
 
 - Pure C++ implementation (C++20)
 - No external dependencies
