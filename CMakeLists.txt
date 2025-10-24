@@ -7,6 +7,27 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+find_package(Python REQUIRED)
+message(STATUS "Found Python: ${Python_EXECUTABLE} (found version ${Python_VERSION})")
+
+add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/data.bin
+
+        # Command: python generate_data.py
+        COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/generate_data.py
+
+        # Run the command from the root directory so 'data.bin' is created there
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+
+        COMMENT "Generating data.bin..."
+
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/generate_data.py
+)
+
+add_custom_target(GenerateData
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/data.bin
+)
+
 option(ENABLE_TESTING "Enable testing" ON)
 option(ENABLE_WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
 
@@ -17,6 +38,10 @@ set(TEST_DIR ${PROJECT_SOURCE_DIR}/tests)
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
         ${SRC_DIR}/*.cpp
         ${SRC_DIR}/*.cxx)
+
+# Exclude the program's main.cpp from the library so tests don't pick up main()
+set(MAIN_SRC ${PROJECT_SOURCE_DIR}/src/main.cpp)
+list(REMOVE_ITEM SRC_FILES ${MAIN_SRC})
 
 file(GLOB_RECURSE HEADER_FILES CONFIGURE_DEPENDS
         ${INCLUDE_DIR}/*.hpp
@@ -29,7 +54,15 @@ message(STATUS "FOUND TEST FILES: ${TEST_FILES}")
 foreach (SOURCE_FILE ${SOURCES})
     message(STATUS " Source file: ${SOURCE_FILE}")
 endforeach()
-add_executable(${PROJECT_NAME} ${SRC_FILES})
+
+# Build a library from the project sources so tests can link against the implementations
+add_library(group_two_lib STATIC ${SRC_FILES})
+target_include_directories(group_two_lib PUBLIC ${INCLUDE_DIR})
+add_dependencies(group_two_lib GenerateData)
+
+# Build the main executable and link with the library
+add_executable(${PROJECT_NAME} ${PROJECT_SOURCE_DIR}/src/main.cpp)
+target_link_libraries(${PROJECT_NAME} PRIVATE group_two_lib)
 target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIR})
 
 if(ENABLE_TESTING)
@@ -38,6 +71,7 @@ if(ENABLE_TESTING)
     # Check if test directory exists
     if(EXISTS ${TEST_DIR})
         message(STATUS "Testing enabled - test directory found")
+        set(TEST_TARGETS "")
 
         # Add individual test files if they exist
         file(GLOB TEST_FILES "${TEST_DIR}/*.cpp")
@@ -47,9 +81,21 @@ if(ENABLE_TESTING)
             add_executable(${TEST_NAME} ${TEST_FILE})
             target_include_directories(${TEST_NAME} PRIVATE ${INCLUDE_DIR})
             target_compile_options(${TEST_NAME} PRIVATE ${COMMON_WARNINGS})
+            # Link test executables with the project library so they resolve implementations
+            target_link_libraries(${TEST_NAME} PRIVATE group_two_lib)
             add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
             message(STATUS "  Added test: ${TEST_NAME}")
+            list(APPEND TEST_TARGETS ${TEST_NAME})
         endforeach()
+        if(TEST_TARGETS)
+            add_custom_target(RunTests
+                    COMMAND ${CMAKE_CTEST_COMMAND} -C $<CONFIG> --output-on-failure
+                    DEPENDS ${TEST_TARGETS}
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            )
+            add_dependencies(${PROJECT_NAME} RunTests)
+            message(STATUS "Main target '${PROJECT_NAME}' will now run tests before linking.")
+        endif()
     else()
         message(STATUS "Testing enabled but no test directory found")
     endif()
