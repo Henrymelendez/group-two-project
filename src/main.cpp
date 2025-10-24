@@ -7,20 +7,32 @@
 #include "Analyzer.h"
 #include "StatisticsAnalyzer.h"
 #include "SearchAnalyzer.h"
+#include "DuplicatesAnalyzer.h"
+#include "MissingAnalyzer.h"
+#include "BinaryUtils.h"
 
 int main(int argc, char* argv[]) {
     std::string filename;
 
     if (argc == 1) {
-        filename = "../data.bin";
+        filename = "data.bin";
         std::cout << "No filename provided, using default: " << filename << std::endl;
+
+        // Check if file exists, if not create it
+        std::ifstream checkFile(filename);
+        if (!checkFile) {
+            std::cout << "File not found. Creating " << filename << "...\n";
+            createBinaryFile(filename);
+        } else {
+            checkFile.close();
+        }
     } else if (argc == 2) {
         // One argument provided, use that.
         filename = argv[1];
     } else {
         // Too many arguments, show usage and exit.
         std::cerr << "Usage: " << argv[0] << " [filename.bin]\n";
-        std::cerr << "If no filename is given, 'data.bin' will be used.\n";
+        std::cerr << "If no filename is given, 'data.bin' will be created and used.\n";
         return 1;
     }
 
@@ -62,14 +74,18 @@ int main(int argc, char* argv[]) {
     std::cout << "Number of integers: " << numIntegers << "\n\n";
 
     // --- Create Analyzers ---
-    // We need two separate copies of the data because both analyzers
+    // We need separate copies of the data because each analyzer
     // will sort the data in-place.
     std::vector<int> dataForStats = data;
     std::vector<int> dataForSearch = data;
+    std::vector<int> dataForDuplicates = data;
+    std::vector<int> dataForMissing = data;
 
     std::vector<std::unique_ptr<Analyzer>> analyzers;
     analyzers.push_back(std::make_unique<StatisticsAnalyzer>(dataForStats.data(), dataForStats.size()));
     analyzers.push_back(std::make_unique<SearchAnalyzer>(dataForSearch.data(), dataForSearch.size()));
+    analyzers.push_back(std::make_unique<DuplicatesAnalyzer>(dataForDuplicates.data(), dataForDuplicates.size()));
+    analyzers.push_back(std::make_unique<MissingAnalyzer>(dataForMissing.data(), dataForMissing.size()));
 
     // --- Run and Print Analysis ---
     for (const auto& analyzer : analyzers) {

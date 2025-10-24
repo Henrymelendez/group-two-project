@@ -7,26 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(Python REQUIRED)
-message(STATUS "Found Python: ${Python_EXECUTABLE} (found version ${Python_VERSION})")
-
-add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/data.bin
-
-        # Command: python generate_data.py
-        COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/generate_data.py
-
-        # Run the command from the root directory so 'data.bin' is created there
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-
-        COMMENT "Generating data.bin..."
-
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/generate_data.py
-)
-
-add_custom_target(GenerateData
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/data.bin
-)
 
 option(ENABLE_TESTING "Enable testing" ON)
 option(ENABLE_WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
@@ -58,7 +38,7 @@ endforeach()
 # Build a library from the project sources so tests can link against the implementations
 add_library(group_two_lib STATIC ${SRC_FILES})
 target_include_directories(group_two_lib PUBLIC ${INCLUDE_DIR})
-add_dependencies(group_two_lib GenerateData)
+
 
 # Build the main executable and link with the library
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCE_DIR}/src/main.cpp)
